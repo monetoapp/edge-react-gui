@@ -17,6 +17,7 @@ import { dayText, nightText } from '../../styles/common/textStyles.js'
 import { THEME } from '../../theme/variables/airbitz.js'
 import { type Dispatch, type RootState } from '../../types/reduxTypes.js'
 import { FormField } from '../common/FormField.js'
+import CheckBox from '../../modules/UI/components/CheckBox/CheckBox.ui.js'
 import { SceneWrapper } from '../common/SceneWrapper.js'
 
 type OwnProps = {
@@ -25,6 +26,7 @@ type OwnProps = {
 
 type StateProps = {
   networkFeeOption?: FeeOption,
+  defaultFee: Boolean,
   customNetworkFee?: Object
 }
 
@@ -36,6 +38,7 @@ type Props = OwnProps & StateProps & DispatchProps
 
 type State = {
   networkFeeOption: FeeOption,
+  defaultFee: Boolean,
   customNetworkFee: Object
 }
 
@@ -73,7 +76,10 @@ export class ChangeMiningFee extends React.Component<Props, State> {
   render() {
     const customFormat = this.getCustomFormat()
 
+    let defaultFee = false
+
     return (
+      // Add checkbox
       <SceneWrapper background="body" hasTabs={false} avoidKeyboard>
         <ScrollView style={styles.content}>
           {this.renderRadioRow('high', s.strings.mining_fee_high_label_choice)}
@@ -82,9 +88,23 @@ export class ChangeMiningFee extends React.Component<Props, State> {
           {customFormat != null ? this.renderRadioRow('custom', s.strings.mining_fee_custom_label_choice) : null}
           {customFormat != null ? this.renderCustomFee(customFormat) : null}
           {this.renderFeeWarning()}
+
+          
+          <View>
+            <TouchableWithoutFeedback>
+              <View style={styles.touchableCheckboxInterior}>
+                <CheckBox onPress={() => this.toggleDefaultFee()} style={styles.checkBox} enabled={this.state.defaultFee} />
+              </View>
+            </TouchableWithoutFeedback>
+            <View>
+              <Text style={styles.tokenNameText}>{'Set Default Fee'}</Text>
+            </View>
+          </View>
+
           <PrimaryButton onPress={this.onSubmit} style={styles.saveButton}>
             <PrimaryButton.Text>{s.strings.save}</PrimaryButton.Text>
           </PrimaryButton>
+          
         </ScrollView>
       </SceneWrapper>
     )
@@ -98,6 +118,18 @@ export class ChangeMiningFee extends React.Component<Props, State> {
         <View style={styles.radioRow}>
           <View style={[styles.radio, networkFeeOption === value ? styles.selected : null]} />
           <Text style={dayText('row-left')}>{label}</Text>
+        </View>
+      </TouchableWithoutFeedback>
+    )
+  }
+
+  toggleDefaultFee() {
+    const { defaultFee } = this.state
+
+    return (
+      <TouchableWithoutFeedback>
+        <View style={styles.touchableCheckboxInterior}>
+          <CheckBox style={styles.checkBox} enabled={!defaultFee} />
         </View>
       </TouchableWithoutFeedback>
     )
