@@ -282,7 +282,9 @@ export class SendConfirmation extends React.Component<Props, State> {
               <Scene.Padding style={{ paddingHorizontal: 54 }}>
                 <Scene.Item style={{ alignItems: 'center', flex: -1 }}>
                   <Scene.Row style={{ paddingVertical: 4 }}>
-                    <Text style={[styles.feeAreaText, { color: networkFeeData.feeColor }]}>{networkFeeData.feeSyntax}</Text>
+                    <Text style={[styles.feeAreaText, { color: networkFeeData.feeColor }]}>
+                      {networkFeeData.feeSyntax} Standard Fee {}
+                    </Text>
                   </Scene.Row>
 
                   {!!destination && (

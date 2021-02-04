@@ -1,5 +1,8 @@
 // @flow
 
+import type { JsonObject } from 'edge-core-js'
+
+import type { FeeOption } from '../../reducers/scenes/SettingsReducer'
 import type { MostRecentWallet } from '../../types/types.js'
 
 export const updateSettings = (settings: Object) => ({
@@ -47,6 +50,11 @@ export const setSettingsLock = (bool: boolean) => ({
 export const setDenominationKey = (currencyCode: string, denominationKey: string) => ({
   type: 'UI/SETTINGS/SET_DENOMINATION_KEY',
   data: { currencyCode, denominationKey }
+})
+
+export const setDefaultFee = (currencyCode: string, defaultFee: FeeOption, customFee: JsonObject) => ({
+  type: 'UI/SETTINGS/SET_DEFAULT_FEE',
+  data: { currencyCode: currencyCode, defaultFee: defaultFee, customFee: customFee }
 })
 
 // touch id settings

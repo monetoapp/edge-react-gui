@@ -1,5 +1,6 @@
 // @flow
 
+import type { JsonObject } from 'edge-core-js'
 import { type EdgeCurrencyWallet } from 'edge-core-js/types'
 import * as React from 'react'
 import { ScrollView, StyleSheet, Switch, Text, TouchableWithoutFeedback, View } from 'react-native'
@@ -8,6 +9,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo'
 import { connect } from 'react-redux'
 
 import { sendConfirmationUpdateTx } from '../../actions/SendConfirmationActions.js'
+import { setDefaultFeeSetting } from '../../actions/SettingsActions.js'
 import { FEE_STRINGS } from '../../constants/WalletAndCurrencyConstants.js'
 import s from '../../locales/strings.js'
 import { PrimaryButton } from '../../modules/UI/components/Buttons/PrimaryButton.ui.js'
@@ -27,11 +29,11 @@ type OwnProps = {
 type StateProps = {
   networkFeeOption?: FeeOption,
   customNetworkFee?: Object,
-  currencySettings: CurrencySetting
+  currencySettings?: CurrencySetting
 }
 
 type DispatchProps = {
-  onSubmit(networkFeeOption: FeeOption, customNetworkFee: Object, setDefault: boolean, currencyCode: string): mixed
+  onSubmit(setDefault: boolean, currencyCode: string, networkFeeOption: FeeOption, customNetworkFee: Object): mixed
 }
 
 type Props = OwnProps & StateProps & DispatchProps
@@ -50,8 +52,12 @@ export class ChangeMiningFee extends React.Component<Props, State> {
 
     const setDefault = !(props.currencySettings?.defaultFee == null) // Set false if null, true if exists
 
-    if (!(props.currencySettings?.defaultFee == null)) {
-      networkFeeOption = props.currencySettings.defaultFee // Set default fee
+    if (!(props.currencySettings?.defaultFee == null && props.currencySettings == null)) {
+      // If not null
+      networkFeeOption = props.currencySettings?.defaultFee // Set default fee
+    }
+    if (networkFeeOption == null) {
+      networkFeeOption = 'standard'
     }
 
     const currencyCode = props.wallet.currencyInfo.currencyCode
@@ -78,7 +84,7 @@ export class ChangeMiningFee extends React.Component<Props, State> {
 
   onSubmit = () => {
     const { networkFeeOption, customNetworkFee, setDefault, currencyCode } = this.state
-    this.props.onSubmit(networkFeeOption, customNetworkFee, setDefault, currencyCode)
+    this.props.onSubmit(setDefault, currencyCode, networkFeeOption, customNetworkFee)
     Actions.pop()
   }
 
@@ -100,15 +106,13 @@ export class ChangeMiningFee extends React.Component<Props, State> {
           {this.renderFeeWarning()}
 
           <View>
-            <TouchableWithoutFeedback>
-              <View style={styles.paddingLeftIcon}>
-                <Switch value={this.state.setDefault} onChange={() => this.toggleDefaultFee()} />
+            <View>
+              <Text style={styles.paddingLeftIcon}>Set default for future transactions</Text>
+              <View style={styles.paddingRightIcon}>
+                <TouchableWithoutFeedback>
+                  <Switch value={this.state.setDefault} onChange={() => this.toggleDefaultFee()} />
+                </TouchableWithoutFeedback>
               </View>
-            </TouchableWithoutFeedback>
-            <View style={styles.paddingRightIcon}>
-              <Text>
-                Default Fee for {this.state.currencyCode} is {this.state.setDefault ? 'Enabled' : 'Disabled'}
-              </Text>
             </View>
           </View>
 
@@ -230,24 +234,20 @@ const rawStyles = {
 }
 const styles: typeof rawStyles = StyleSheet.create(rawStyles)
 export const ChangeMiningFeeScene = connect(
-  (state: RootState): StateProps => ({
-    // Connector
-    // Selector
-    networkFeeOption: getGuiMakeSpendInfo(state).networkFeeOption,
-    customNetworkFee: getGuiMakeSpendInfo(state).customNetworkFee,
-    currencySettings: state.ui.settings[getSelectedCurrencyCode(state)]
-  }),
+  (state: RootState): StateProps => {
+    return {
+      networkFeeOption: getGuiMakeSpendInfo(state).networkFeeOption,
+      customNetworkFee: getGuiMakeSpendInfo(state).customNetworkFee,
+      currencySettings: state.ui.settings[getSelectedCurrencyCode(state)]
+    }
+  },
   (dispatch: Dispatch): DispatchProps => ({
     // dispatch = setter
-    onSubmit(networkFeeOption: FeeOption, customNetworkFee: Object, setDefault: boolean, currencyCode: string) {
+    onSubmit(setDefault: boolean, currencyCode: string, defaultFee: FeeOption, customFee?: JsonObject = {}) {
       if (setDefault) {
-        console.log(`Has default fee: ${setDefault.toString()}`)
-        dispatch({
-          type: 'UI/SETTINGS/SET_DEFAULT_FEE',
-          data: { currencyCode: currencyCode, defaultFee: networkFeeOption, customFee: customNetworkFee }
-        })
+        dispatch(setDefaultFeeSetting(currencyCode, defaultFee, customFee))
       }
-      dispatch(sendConfirmationUpdateTx({ networkFeeOption, customNetworkFee }))
+      dispatch(sendConfirmationUpdateTx({ defaultFee, customFee }))
     }
   })
 )(ChangeMiningFee)
