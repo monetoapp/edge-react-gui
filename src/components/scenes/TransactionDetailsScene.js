@@ -253,6 +253,7 @@ export class TransactionDetailsComponent extends React.Component<Props, State> {
   }
 
   renderExchangeData = () => {
+  renderExchangeData = (symbolString: string) => {
     const { destinationDenomination, destinationWallet, edgeTransaction, guiWallet, walletDefaultDenomProps, theme, settings } = this.props
     const { swapData, spendTargets } = edgeTransaction
     const styles = getStyles(theme)
